@@ -158,4 +158,3 @@ Computer Science (Software Development) — UTeM
 [GitHub](https://github.com/Aliaamndaa) · [LinkedIn](https://linkedin.com/in/nuralia-amanda)
 =======
 # klinik-inventory
->>>>>>> b8100e058d9061305303b54e7c01df69c7279a4c
