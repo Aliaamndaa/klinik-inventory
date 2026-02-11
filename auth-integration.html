@@ -1,0 +1,227 @@
+<!-- Authentication Enhancement Script -->
+<!-- Add this script at the bottom of index.html, right before </body> -->
+
+<script>
+// ============================================================
+// AUTHENTICATION MODULE
+// ============================================================
+
+const Auth = {
+    currentUser: null,
+    
+    // Check authentication status on page load
+    async init() {
+        try {
+            const response = await fetch(`${API}/auth.php?action=check`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+            
+            if (!data.authenticated) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            this.currentUser = data.user;
+            this.updateUI();
+            return true;
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            window.location.href = 'login.html';
+            return false;
+        }
+    },
+    
+    // Update UI based on user role
+    updateUI() {
+        if (!this.currentUser) return;
+        
+        // Update user info in sidebar
+        const userNameEl = document.querySelector('.u-name');
+        const userRoleEl = document.querySelector('.u-role');
+        const userAvatarEl = document.querySelector('.u-avatar');
+        
+        if (userNameEl) userNameEl.textContent = this.currentUser.full_name;
+        if (userRoleEl) userRoleEl.textContent = this.currentUser.role.toUpperCase();
+        if (userAvatarEl) {
+            userAvatarEl.textContent = this.currentUser.full_name.charAt(0).toUpperCase();
+        }
+        
+        // Hide admin-only features for staff
+        if (this.currentUser.role === 'staff') {
+            this.hideAdminFeatures();
+        }
+        
+        // Add logout button if not exists
+        this.addLogoutButton();
+    },
+    
+    // Hide features that only admins should access
+    hideAdminFeatures() {
+        // Hide delete buttons
+        document.querySelectorAll('.btn-del').forEach(btn => {
+            btn.style.display = 'none';
+        });
+        
+        // Hide user management nav item if exists
+        const userMgmtNav = document.querySelector('[data-view="users"]');
+        if (userMgmtNav) {
+            userMgmtNav.style.display = 'none';
+        }
+        
+        // Disable medicine deletion
+        document.addEventListener('click', (e) => {
+            if (this.currentUser.role === 'staff' && e.target.classList.contains('btn-del')) {
+                e.preventDefault();
+                e.stopPropagation();
+                alert('Access denied. Only administrators can delete items.');
+            }
+        }, true);
+    },
+    
+    // Add logout button to sidebar footer
+    addLogoutButton() {
+        const footer = document.querySelector('.sb-foot');
+        if (!footer || document.getElementById('logout-btn')) return;
+        
+        const logoutBtn = document.createElement('button');
+        logoutBtn.id = 'logout-btn';
+        logoutBtn.className = 'btn btn-sm';
+        logoutBtn.innerHTML = '🚪 Logout';
+        logoutBtn.style.cssText = `
+            width: 100%;
+            margin-top: 12px;
+            background: rgba(255, 95, 109, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(255, 95, 109, 0.3);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        `;
+        
+        logoutBtn.onmouseover = () => {
+            logoutBtn.style.background = 'rgba(255, 95, 109, 0.25)';
+        };
+        logoutBtn.onmouseout = () => {
+            logoutBtn.style.background = 'rgba(255, 95, 109, 0.15)';
+        };
+        
+        logoutBtn.onclick = () => this.logout();
+        footer.appendChild(logoutBtn);
+    },
+    
+    // Logout function
+    async logout() {
+        if (!confirm('Are you sure you want to logout?')) return;
+        
+        try {
+            await fetch(`${API}/auth.php?action=logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('Logout error:', error);
+            window.location.href = 'login.html';
+        }
+    },
+    
+    // Check if current user is admin
+    isAdmin() {
+        return this.currentUser && this.currentUser.role === 'admin';
+    },
+    
+    // Get current user info
+    getUser() {
+        return this.currentUser;
+    }
+};
+
+// ============================================================
+// ENHANCED API CALLS WITH AUTH ERROR HANDLING
+// ============================================================
+
+// Wrapper for all API calls to handle 401 errors
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+    const response = await originalFetch.apply(this, args);
+    
+    // If unauthorized, redirect to login
+    if (response.status === 401) {
+        const data = await response.json();
+        if (data.redirect === 'login.html') {
+            window.location.href = 'login.html';
+        }
+    }
+    
+    // If forbidden (403), show error
+    if (response.status === 403) {
+        const data = await response.json();
+        alert(data.message || 'Access denied. Insufficient permissions.');
+        throw new Error('Access denied');
+    }
+    
+    return response;
+};
+
+// ============================================================
+// INITIALIZE AUTH ON PAGE LOAD
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const isAuthenticated = await Auth.init();
+    
+    if (!isAuthenticated) {
+        return; // Will redirect to login
+    }
+    
+    console.log('User authenticated:', Auth.getUser());
+    
+    // Continue with your existing app initialization...
+    // Example: if you have an init() function
+    // if (typeof init === 'function') init();
+});
+
+// Make Auth available globally
+window.Auth = Auth;
+</script>
+
+<!-- OPTIONAL: Add User Management Section for Admins -->
+<!-- Add this to your navigation menu in index.html -->
+<!--
+<div class="nav-item" data-view="users" onclick="showView('users')" style="display: none;">
+    <span class="nav-ico">👥</span>
+    <span>User Management</span>
+</div>
+-->
+
+<!-- User Management View Template (add to your views section) -->
+<!--
+<div id="usersView" class="view" style="display:none">
+    <div class="card">
+        <div class="card-hdr">
+            <div>
+                <h3>User Management</h3>
+                <p>Manage system users and permissions</p>
+            </div>
+        </div>
+        <div class="tbl-wrap">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersList"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+-->

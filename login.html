@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Klinik Dr. Azhar Inventory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #888;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .form-content {
+            display: none;
+        }
+
+        .form-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .role-note {
+            background: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+
+        .role-note strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                border-radius: 0;
+            }
+            
+            .login-header {
+                padding: 30px 20px;
+            }
+            
+            .login-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🏥 Klinik Dr. Azhar</h1>
+            <p>Inventory Management System</p>
+        </div>
+        
+        <div class="login-body">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('login')">Login</div>
+                <div class="tab" onclick="switchTab('register')">Register</div>
+            </div>
+
+            <div id="alert" class="alert"></div>
+
+            <!-- LOGIN FORM -->
+            <div id="loginForm" class="form-content active">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="registerForm" class="form-content">
+                <div class="role-note">
+                    <strong>Account Roles:</strong>
+                    <strong>Admin:</strong> Full access - manage all inventory, users, and settings<br>
+                    <strong>Staff:</strong> Limited access - record transactions, view inventory
+                </div>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="reg-fullname">Full Name</label>
+                        <input type="text" id="reg-fullname" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-username">Username</label>
+                        <input type="text" id="reg-username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-role">Role</label>
+                        <select id="reg-role" required>
+                            <option value="staff">Staff (Default)</option>
+                            <option value="admin">Admin (Requires Admin Permission)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UPDATE THIS PATH to match your folder structure
+        // If your files are at: http://localhost/klinik-inventory/
+        // Then backend should be at: http://localhost/klinik-inventory/api/
+        const API = 'http://localhost/klinik-inventory';
+
+        function switchTab(tab) {
+            // Update tab styles
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update form visibility
+            document.querySelectorAll('.form-content').forEach(f => f.classList.remove('active'));
+            document.getElementById(tab + 'Form').classList.add('active');
+
+            // Clear alert
+            hideAlert();
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => hideAlert(), 3000);
+            }
+        }
+
+        function hideAlert() {
+            document.getElementById('alert').style.display = 'none';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            hideAlert();
+
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API}/auth.php?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showAlert(data.message || 'Login failed');
+                }
+            } catch (error) {
+                showAlert('Connection error. Please try again.');
+                console.error('Login error:', error);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            hideAlert();
+
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const role = document.getElementById('reg-role').value;
+
+            // Client-side validation
+            if (!fullName || !username || !password) {
+                showAlert('Please fill in all required fields');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAlert('Password must be at least 6 characters');
+                return;
+            }
+
+            try {
+                console.log('Sending registration request...', { username, full_name: fullName, role });
+                
+                const response = await fetch(`${API}/auth.php?action=register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        full_name: fullName, 
+                        username: username, 
+                        password: password, 
+                        role: role 
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.success) {
+                    showAlert(data.message || 'Registration successful! Please login.', 'success');
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('login-username').value = username;
+                        document.getElementById('reg-fullname').value = '';
+                        document.getElementById('reg-username').value = '';
+                        document.getElementById('reg-password').value = '';
+                    }, 1500);
+                } else {
+                    showAlert(data.message || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('Connection error. Please check: 1) XAMPP is running 2) Database exists 3) API path is correct');
+            }
+        }
+
+        // Check if already logged in
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API}/auth.php?action=check`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

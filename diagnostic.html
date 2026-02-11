@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Diagnostic Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .test-section {
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            color: #00d4ff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            animation: pulse 2s infinite;
+        }
+
+        .status.success {
+            background: #00ff88;
+        }
+
+        .status.error {
+            background: #ff4757;
+        }
+
+        .status.loading {
+            background: #ffa502;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .info-box {
+            background: #0f3460;
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .error-box {
+            background: rgba(255, 71, 87, 0.1);
+            border-left: 4px solid #ff4757;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .success-box {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        code {
+            background: #0a0e27;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #00ff88;
+            font-size: 13px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 10px;
+            background: #0f3460;
+            border: 1px solid #1e4976;
+            border-radius: 6px;
+            color: #eee;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Connection Diagnostic Tool</h1>
+        <p class="subtitle">Let's figure out what's wrong with your setup</p>
+
+        <!-- API Path Configuration -->
+        <div class="test-section">
+            <h2>⚙️ Configuration</h2>
+            <label>API Base URL:</label>
+            <input type="text" id="apiPath" class="config-input" value="http://localhost/klinik-inventory/api">
+            <div class="info-box">
+                <strong>Common paths:</strong><br>
+                • XAMPP: <code>http://localhost/klinik-inventory/backend/api</code><br>
+                • WAMP: <code>http://localhost/klinik-inventory/backend/api</code><br>
+                • Different port: <code>http://localhost:8080/klinik-inventory/backend/api</code>
+            </div>
+            <div class="button-group">
+                <button onclick="runAllTests()">Run All Tests</button>
+            </div>
+        </div>
+
+        <!-- Test 1: Basic Connectivity -->
+        <div class="test-section">
+            <h2><span class="status" id="status1"></span> Test 1: Can we reach the server?</h2>
+            <div id="result1">Click "Run All Tests" to start...</div>
+        </div>
+
+        <!-- Test 2: PHP Working -->
+        <div class="test-section">
+            <h2><span class="status" id="status2"></span> Test 2: Is PHP working?</h2>
+            <div id="result2">Waiting...</div>
+        </div>
+
+        <!-- Test 3: Database Connection -->
+        <div class="test-section">
+            <h2><span class="status" id="status3"></span> Test 3: Can PHP connect to database?</h2>
+            <div id="result3">Waiting...</div>
+        </div>
+
+        <!-- Test 4: Auth Endpoint -->
+        <div class="test-section">
+            <h2><span class="status" id="status4"></span> Test 4: Is auth.php accessible?</h2>
+            <div id="result4">Waiting...</div>
+        </div>
+
+        <!-- Test 5: Registration Test -->
+        <div class="test-section">
+            <h2><span class="status" id="status5"></span> Test 5: Registration endpoint test</h2>
+            <div id="result5">Waiting...</div>
+        </div>
+    </div>
+
+    <script>
+        function getApiPath() {
+            return document.getElementById('apiPath').value;
+        }
+
+        function setStatus(testNum, status) {
+            const statusEl = document.getElementById('status' + testNum);
+            statusEl.className = 'status ' + status;
+        }
+
+        function setResult(testNum, html) {
+            document.getElementById('result' + testNum).innerHTML = html;
+        }
+
+        async function test1() {
+            setStatus(1, 'loading');
+            setResult(1, 'Testing basic connectivity...');
+            
+            try {
+                const response = await fetch(getApiPath() + '/test-connection.php');
+                const text = await response.text();
+                
+                setStatus(1, 'success');
+                setResult(1, `<div class="success-box">✓ Server is reachable!<br>Status: ${response.status}</div>`);
+                return true;
+            } catch (error) {
+                setStatus(1, 'error');
+                setResult(1, `<div class="error-box">
+                    ✗ Cannot reach server<br>
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>Fix:</strong><br>
+                    1. Check XAMPP Control Panel - Apache should be GREEN<br>
+                    2. Verify the path in the configuration above<br>
+                    3. Try: <code>${getApiPath()}/test-connection.php</code> in browser
+                </div>`);
+                return false;
+            }
+        }
+
+        async function test2() {
+            setStatus(2, 'loading');
+            setResult(2, 'Testing PHP execution...');
+            
+            try {
+                const response = await fetch(getApiPath() + '/test-connection.php');
+                const data = await response.json();
+                
+                if (data.php_version) {
+                    setStatus(2, 'success');
+                    setResult(2, `<div class="success-box">
+                        ✓ PHP is working!<br>
+                        PHP Version: ${data.php_version}<br>
+                        File location: <code>${getApiPath()}/test-connection.php</code>
+                    </div>`);
+                    return true;
+                } else {
+                    throw new Error('Invalid response from PHP');
+                }
+            } catch (error) {
+                setStatus(2, 'error');
+                setResult(2, `<div class="error-box">
+                    ✗ PHP not responding properly<br>
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>Fix:</strong><br>
+                    1. Make sure <code>test-connection.php</code> is in <code>backend/api/</code><br>
+                    2. Check Apache error logs in XAMPP
+                </div>`);
+                return false;
+            }
+        }
+
+        async function test3() {
+            setStatus(3, 'loading');
+            setResult(3, 'Testing database connection...');
+            
+            try {
+                const response = await fetch(getApiPath() + '/test-connection.php');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.database) {
+                    setStatus(3, 'success');
+                    setResult(3, `<div class="success-box">
+                        ✓ Database connected!<br>
+                        Database: ${data.database}<br>
+                        Connection: Working
+                    </div>`);
+                    return true;
+                } else {
+                    setStatus(3, 'error');
+                    setResult(3, `<div class="error-box">
+                        ✗ Database connection failed<br>
+                        <strong>Error:</strong> ${data.message}<br><br>
+                        <strong>Fix:</strong><br>
+                        1. Check XAMPP MySQL is running (GREEN in control panel)<br>
+                        2. Open phpMyAdmin: <code>http://localhost/phpmyadmin</code><br>
+                        3. Check if <code>klinik_azhar_db</code> database exists<br>
+                        4. If not, create it and import <code>schema.sql</code>
+                    </div>`);
+                    return false;
+                }
+            } catch (error) {
+                setStatus(3, 'error');
+                setResult(3, `<div class="error-box">
+                    ✗ Cannot test database<br>
+                    Error: ${error.message}
+                </div>`);
+                return false;
+            }
+        }
+
+        async function test4() {
+            setStatus(4, 'loading');
+            setResult(4, 'Testing auth.php endpoint...');
+            
+            try {
+                const response = await fetch(getApiPath() + '/auth.php?action=check');
+                const data = await response.json();
+                
+                if (data.success !== undefined) {
+                    setStatus(4, 'success');
+                    setResult(4, `<div class="success-box">
+                        ✓ auth.php is accessible!<br>
+                        Authenticated: ${data.authenticated ? 'Yes' : 'No'}<br>
+                        API Response: Working
+                    </div>`);
+                    return true;
+                } else {
+                    throw new Error('Invalid response structure');
+                }
+            } catch (error) {
+                setStatus(4, 'error');
+                setResult(4, `<div class="error-box">
+                    ✗ auth.php not working<br>
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>Fix:</strong><br>
+                    1. Make sure <code>auth.php</code> is in <code>backend/api/</code> folder<br>
+                    2. Check file permissions<br>
+                    3. Try opening: <code>${getApiPath()}/auth.php?action=check</code> in browser<br>
+                    4. Check Apache error log for PHP errors
+                </div>`);
+                return false;
+            }
+        }
+
+        async function test5() {
+            setStatus(5, 'loading');
+            setResult(5, 'Testing registration endpoint...');
+            
+            try {
+                // Try a test registration (with invalid data to check endpoint)
+                const response = await fetch(getApiPath() + '/auth.php?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: '', password: '', full_name: '' })
+                });
+                
+                const data = await response.json();
+                
+                // We expect an error here (empty fields), but if we get a response, endpoint works
+                if (data.success === false && data.message) {
+                    setStatus(5, 'success');
+                    setResult(5, `<div class="success-box">
+                        ✓ Registration endpoint is working!<br>
+                        The endpoint responds correctly to requests.<br><br>
+                        <strong>You can now try registering a real user!</strong>
+                    </div>`);
+                    return true;
+                }
+            } catch (error) {
+                setStatus(5, 'error');
+                setResult(5, `<div class="error-box">
+                    ✗ Registration endpoint failed<br>
+                    <strong>Error:</strong> ${error.message}<br><br>
+                    <strong>This is the problem!</strong> The registration can't reach the server.<br><br>
+                    Check the fixes in Test 4 above.
+                </div>`);
+                return false;
+            }
+        }
+
+        async function runAllTests() {
+            document.querySelectorAll('.status').forEach(el => {
+                el.className = 'status';
+            });
+
+            if (await test1()) {
+                if (await test2()) {
+                    if (await test3()) {
+                        if (await test4()) {
+                            await test5();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Auto-run tests on load
+        setTimeout(runAllTests, 500);
+    </script>
+</body>
+</html>

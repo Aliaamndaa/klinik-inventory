@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Klinik Dr. Azhar — Inventory System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0b1728;--navy2:#112240;--navy3:#1a3255;
+  --teal:#0ee6b4;--teal-dim:#09b88d;--teal-glow:rgba(14,230,180,.12);
+  --amber:#ffb84d;--amber-dim:#e09820;
+  --red:#ff5f6d;--red-dim:#c93f4c;
+  --blue:#4db8ff;
+  --text:#e8f0fe;--text2:#8fafc9;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --card:rgba(17,34,64,.85);
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--navy);color:var(--text);display:flex;min-height:100vh;font-size:14px;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(14,230,180,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(14,230,180,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;background:var(--navy2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.brand{padding:26px 22px 22px;border-bottom:1px solid var(--border);}
+.brand-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--teal),var(--teal-dim));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;box-shadow:0 4px 20px rgba(14,230,180,.3);}
+.brand h1{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
+.brand p{font-size:11px;color:var(--text2);margin-top:3px}
+.nav-sec{padding:14px 12px 4px}
+.nav-lbl{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;padding:0 10px 8px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;transition:all .2s;font-size:13.5px;font-weight:500;margin-bottom:2px;border:1px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.nav-item.active{background:var(--teal-glow);color:var(--teal);border-color:rgba(14,230,180,.2)}
+.nav-ico{font-size:16px;width:22px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;}
+.sb-foot{margin-top:auto;padding:16px 22px;border-top:1px solid var(--border);}
+.u-card{display:flex;align-items:center;gap:10px}
+.u-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1a3255,#2a4a7a);display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid var(--border2);}
+.u-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.u-role{font-size:11px;color:var(--text2)}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;position:relative;z-index:1}
+.topbar{background:rgba(11,23,40,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:15px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
+.tb-sub{font-size:11.5px;color:var(--text2);margin-top:2px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 14px;font-size:12.5px;}
+.dot{width:7px;height:7px;border-radius:50%}
+.content{padding:28px 32px;flex:1}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 22px 18px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:default;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.tc::after{background:linear-gradient(90deg,var(--teal),transparent)}
+.stat-card.am::after{background:linear-gradient(90deg,var(--amber),transparent)}
+.stat-card.re::after{background:linear-gradient(90deg,var(--red),transparent)}
+.stat-card.bl::after{background:linear-gradient(90deg,var(--blue),transparent)}
+.big-ico{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:44px;opacity:.06;}
+.s-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
+.s-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:700;margin:8px 0 4px;line-height:1}
+.stat-card.tc .s-val{color:var(--teal)}
+.stat-card.am .s-val{color:var(--amber)}
+.stat-card.re .s-val{color:var(--red)}
+.stat-card.bl .s-val{color:var(--blue)}
+.s-sub{font-size:11.5px;color:var(--text2)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:22px;}
+.card-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-hdr h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.card-hdr p{font-size:12px;color:var(--text2);margin-top:2px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:4px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:4px}
+
+/* TABLE */
+.toolbar{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+input,select,textarea{background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s,background .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);background:rgba(14,230,180,.05);}
+input[type="text"],input[type="number"],input[type="date"]{height:36px;padding:0 12px;}
+select{height:36px;padding:0 12px;cursor:pointer;}
+select option{background:var(--navy2);color:var(--text)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)}
+th{padding:11px 16px;font-size:10.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;text-align:left;white-space:nowrap;}
+td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background .15s}
+tbody tr:hover td{background:rgba(14,230,180,.03)}
+.m-name{font-weight:600;color:var(--text)}
+.m-gen{font-size:11.5px;color:var(--text2);margin-top:2px}
+
+/* STOCK BAR */
+.stk-wrap{display:flex;align-items:center;gap:8px}
+.stk-num{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;min-width:44px}
+.stk-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;min-width:50px}
+.stk-fill{height:100%;border-radius:2px;transition:width .5s}
+
+/* CHIPS */
+.chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.chip.tc{background:rgba(14,230,180,.12);color:var(--teal);border:1px solid rgba(14,230,180,.2)}
+.chip.am{background:rgba(255,184,77,.12);color:var(--amber);border:1px solid rgba(255,184,77,.2)}
+.chip.re{background:rgba(255,95,109,.12);color:var(--red);border:1px solid rgba(255,95,109,.2)}
+.chip.bl{background:rgba(77,184,255,.12);color:var(--blue);border:1px solid rgba(77,184,255,.2)}
+.chip.gr{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 18px;border:none;border-radius:var(--radius-sm);font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.bp{background:var(--teal);color:var(--navy)}
+.bp:hover{background:var(--teal-dim);box-shadow:0 4px 16px rgba(14,230,180,.3)}
+.bg{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border2)}
+.bg:hover{background:rgba(255,255,255,.1)}
+.bd{background:rgba(255,95,109,.1);color:var(--red);border:1px solid rgba(255,95,109,.2)}
+.bd:hover{background:var(--red);color:#fff}
+.bam{background:rgba(255,184,77,.1);color:var(--amber);border:1px solid rgba(255,184,77,.2)}
+.bam:hover{background:var(--amber);color:var(--navy)}
+.bsm{height:28px;padding:0 12px;font-size:12px}
+
+/* ALERT ROWS */
+.a-list{padding:4px 0}
+.a-row{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);transition:background .15s;}
+.a-row:last-child{border-bottom:none}
+.a-row:hover{background:rgba(255,255,255,.02)}
+.a-name{font-weight:600;font-size:13.5px}
+.a-meta{font-size:11.5px;color:var(--text2);margin-top:3px}
+.empty-s{text-align:center;padding:36px 20px;color:var(--text2);font-size:13px}
+.empty-s .ei{font-size:30px;margin-bottom:10px;opacity:.5}
+
+/* PAGES */
+.page{display:none;animation:fi .25s ease}
+.page.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(5,12,25,.78);backdrop-filter:blur(6px);z-index:300;align-items:center;justify-content:center;}
+.overlay.show{display:flex}
+.modal{background:var(--navy2);border:1px solid var(--border2);border-radius:20px;padding:32px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.5);animation:mi .25s ease;}
+@keyframes mi{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px}
+.m-sub{font-size:12.5px;color:var(--text2);margin-bottom:24px}
+.m-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.fg label{font-size:11.5px;font-weight:600;color:var(--text2);letter-spacing:.03em}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 14px;border-radius:var(--radius-sm);}
+.fg textarea{min-height:72px;resize:vertical;line-height:1.5}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;right:28px;padding:13px 20px;border-radius:12px;font-size:13.5px;font-weight:500;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:999;display:flex;align-items:center;gap:10px;border:1px solid transparent;max-width:320px;}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.success{background:#0d2b20;color:var(--teal);border-color:rgba(14,230,180,.25)}
+#toast.error{background:#2b0d10;color:var(--red);border-color:rgba(255,95,109,.25)}
+#toast.info{background:#0d1e2b;color:var(--blue);border-color:rgba(77,184,255,.25)}
+
+.tx-t{display:inline-flex;align-items:center;gap:5px;font-weight:600;font-size:12.5px}
+.tx-t.in{color:var(--teal)}.tx-t.out{color:var(--red)}.tx-t.adj{color:var(--amber)}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{
+  position:fixed;inset:0;background:var(--navy);z-index:500;
+  display:flex;align-items:center;justify-content:center;
+}
+#auth-screen::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(14,230,180,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(14,230,180,.03) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;
+}
+.auth-box{
+  background:var(--navy2);border:1px solid var(--border2);
+  border-radius:24px;padding:40px;width:440px;max-width:95vw;
+  box-shadow:0 32px 80px rgba(0,0,0,.5);
+  position:relative;z-index:1;
+  animation:mi .35s ease;
+}
+.auth-logo{
+  width:50px;height:50px;
+  background:linear-gradient(135deg,var(--teal),var(--teal-dim));
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin:0 auto 20px;
+  box-shadow:0 6px 24px rgba(14,230,180,.35);
+}
+.auth-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;text-align:center;margin-bottom:4px}
+.auth-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:28px}
+.auth-tabs{display:flex;background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:4px;margin-bottom:24px;gap:4px;}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);transition:all .2s;}
+.auth-tab.active{background:var(--teal);color:var(--navy);}
+.auth-form{display:none}.auth-form.active{display:block}
+.auth-btn{width:100%;height:44px;background:var(--teal);color:var(--navy);border:none;border-radius:var(--radius-sm);font-family:'Instrument Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;}
+.auth-btn:hover{background:var(--teal-dim);box-shadow:0 4px 20px rgba(14,230,180,.35)}
+.auth-error{background:rgba(255,95,109,.12);border:1px solid rgba(255,95,109,.25);color:var(--red);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:14px;display:none;}
+.auth-error.show{display:block}
+.role-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700;}
+.role-chip.admin{background:rgba(14,230,180,.12);color:var(--teal);border:1px solid rgba(14,230,180,.2)}
+.role-chip.staff{background:rgba(77,184,255,.12);color:var(--blue);border:1px solid rgba(77,184,255,.2)}
+/* logout button in sidebar */
+.logout-btn{width:100%;margin-top:10px;height:34px;background:rgba(255,95,109,.08);color:var(--red);border:1px solid rgba(255,95,109,.2);border-radius:var(--radius-sm);font-family:'Instrument Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.logout-btn:hover{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🏥</div>
+    <div class="auth-title">Klinik Dr. Azhar</div>
+    <div class="auth-sub">Inventory Management System</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Login</div>
+      <div class="auth-tab" onclick="switchTab('register')">Register</div>
+    </div>
+    <div class="auth-form active" id="form-login">
+      <div class="auth-error" id="login-err"></div>
+      <div class="fg"><label>Username</label><input type="text" id="l-user" placeholder="Enter your username"/></div>
+      <div class="fg"><label>Password</label><input type="password" id="l-pass" placeholder="Enter your password"/></div>
+      <button class="auth-btn" onclick="doLogin()">Login</button>
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text2)">Default admin: <b style="color:var(--teal)">admin</b> / <b style="color:var(--teal)">admin123</b></div>
+    </div>
+    <div class="auth-form" id="form-register">
+      <div class="auth-error" id="reg-err"></div>
+      <div class="fr">
+        <div class="fg"><label>Full Name *</label><input type="text" id="r-name" placeholder="e.g. Siti Aishah"/></div>
+        <div class="fg"><label>Username *</label><input type="text" id="r-user" placeholder="e.g. siti123"/></div>
+      </div>
+      <div class="fg"><label>Password *</label><input type="password" id="r-pass" placeholder="Min. 6 characters"/></div>
+      <div class="fg"><label>Confirm Password *</label><input type="password" id="r-pass2" placeholder="Repeat password"/></div>
+      <div class="fg"><label>Role *</label>
+        <select id="r-role"><option value="staff">Staff</option><option value="admin">Admin</option></select>
+      </div>
+      <button class="auth-btn" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏥</div>
+    <h1>Klinik Dr. Azhar</h1>
+    <p>Inventory Management System</p>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><span class="nav-ico">▦</span>Dashboard</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Inventory</div>
+    <div class="nav-item" onclick="nav('medicines',this)"><span class="nav-ico">💊</span>Medicines</div>
+    <div class="nav-item" onclick="nav('categories',this)"><span class="nav-ico">🗂</span>Categories</div>
+    <div class="nav-item" onclick="nav('suppliers',this)"><span class="nav-ico">🚚</span>Suppliers</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Activity</div>
+    <div class="nav-item" onclick="nav('transactions',this)"><span class="nav-ico">↕</span>Stock Transactions</div>
+    <div class="nav-item" onclick="nav('alerts',this)"><span class="nav-ico">⚠</span>Alerts<span class="nav-badge" id="sb-badge" style="display:none">0</span></div>
+  </div>
+  <div class="sb-foot">
+    <div class="u-card">
+      <div class="u-avatar" id="sb-avatar">👤</div>
+      <div>
+        <div class="u-name" id="sb-uname">—</div>
+        <div class="u-role"><span class="role-chip staff" id="sb-role-chip">staff</span></div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">⇦ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="pg-title">Dashboard</div>
+      <div class="tb-sub" id="pg-sub">Real-time overview of your inventory</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-pill"><span class="dot" style="background:var(--teal)"></span><span id="tb-date" style="color:var(--text2)"></span></div>
+      <div class="tb-pill" id="tb-alert" style="display:none"><span class="dot" style="background:var(--red)"></span><span style="color:var(--red);font-weight:600" id="tb-alert-txt"></span></div>
+      <div class="tb-pill" style="gap:8px">
+        <span id="tb-uname" style="font-weight:600;color:var(--text)">—</span>
+        <span class="role-chip staff" id="tb-role-chip">staff</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card tc"><div class="big-ico">💊</div><div class="s-lbl">Total Medicines</div><div class="s-val" id="d-tot">0</div><div class="s-sub">Active items</div></div>
+        <div class="stat-card am"><div class="big-ico">⚠</div><div class="s-lbl">Low Stock</div><div class="s-val" id="d-low">0</div><div class="s-sub">Below reorder level</div></div>
+        <div class="stat-card re"><div class="big-ico">📅</div><div class="s-lbl">Expiry Issues</div><div class="s-val" id="d-exp">0</div><div class="s-sub">Expiring or expired</div></div>
+        <div class="stat-card bl"><div class="big-ico">💰</div><div class="s-lbl">Stock Value</div><div class="s-val" id="d-val" style="font-size:19px;padding-top:7px">RM 0</div><div class="s-sub">Total inventory value</div></div>
+      </div>
+      <div class="g2">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-hdr"><div><h3>⚠️ Low Stock Alerts</h3><p>Items at or below reorder level</p></div></div>
+          <div id="d-low-list" class="a-list"></div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-hdr"><div><h3>📅 Expiry Warnings</h3><p>Expiring soon or already expired</p></div></div>
+          <div id="d-exp-list" class="a-list"></div>
+        </div>
+      </div>
+      <div style="margin-top:22px">
+      <div class="card">
+        <div class="card-hdr">
+          <div><h3>🔄 Recent Transactions</h3><p>Last 6 stock movements</p></div>
+          <button class="btn bg bsm" onclick="nav('transactions',document.querySelectorAll('.nav-item')[5])">View all</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Medicine</th><th>Type</th><th>Qty</th><th>Notes</th><th>Date</th></tr></thead>
+          <tbody id="d-tx"></tbody>
+        </table></div>
+      </div>
+      </div>
+    </div>
+
+    <!-- MEDICINES -->
+    <div class="page" id="page-medicines">
+      <div class="card">
+        <div class="card-hdr">
+          <div><h3>Medicine Inventory</h3><p id="med-lbl">— items</p></div>
+          <button class="btn bp" onclick="openMedModal()">＋ Add Medicine</button>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="m-srch" placeholder="🔍  Search name or generic…" oninput="renderMeds()" style="width:230px"/>
+          <select id="m-fcat" onchange="renderMeds()"><option value="">All Categories</option></select>
+          <select id="m-fst" onchange="renderMeds()">
+            <option value="">All Status</option>
+            <option value="low">Low Stock</option>
+            <option value="expiring">Expiring Soon</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Medicine</th><th>Category</th><th>Supplier</th><th>Stock Level</th><th>Expiry</th><th>Location</th><th>Price</th><th>Actions</th></tr></thead>
+          <tbody id="m-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="page" id="page-categories">
+      <div class="card">
+        <div class="card-hdr">
+          <div><h3>Medicine Categories</h3><p>Organise medicines by type</p></div>
+          <button class="btn bp" onclick="openCatModal()">＋ Add Category</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Category Name</th><th>Description</th><th>Items</th><th>Actions</th></tr></thead>
+          <tbody id="c-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- SUPPLIERS -->
+    <div class="page" id="page-suppliers">
+      <div class="card">
+        <div class="card-hdr">
+          <div><h3>Suppliers</h3><p>Manage medicine suppliers</p></div>
+          <button class="btn bp" onclick="openSupModal()">＋ Add Supplier</button>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Company</th><th>Contact Person</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+          <tbody id="s-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="page-transactions">
+      <div class="card">
+        <div class="card-hdr">
+          <div><h3>Stock Transactions</h3><p>All stock in / out / adjustment records</p></div>
+          <button class="btn bp" onclick="openTxModal()">＋ Record Transaction</button>
+        </div>
+        <div class="toolbar">
+          <select id="tx-ftype" onchange="renderTx()">
+            <option value="">All Types</option>
+            <option value="in">📥 Stock In</option>
+            <option value="out">📤 Stock Out</option>
+            <option value="adjustment">🔧 Adjustment</option>
+          </select>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Medicine</th><th>Type</th><th>Quantity</th><th>Notes</th><th>Date & Time</th></tr></thead>
+          <tbody id="tx-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+      <div class="g3">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-hdr"><div><h3 style="color:var(--amber)">📦 Low Stock</h3><p>Needs reorder</p></div></div>
+          <div id="a-low" class="a-list"></div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-hdr"><div><h3 style="color:var(--amber)">⏳ Expiring Soon</h3><p>Within 90 days</p></div></div>
+          <div id="a-exp" class="a-list"></div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-hdr"><div><h3 style="color:var(--red)">⛔ Expired</h3><p>Past expiry date</p></div></div>
+          <div id="a-exd" class="a-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Medicine -->
+<div class="overlay" id="md-med">
+  <div class="modal">
+    <div class="m-title" id="mm-title">Add Medicine</div>
+    <div class="m-sub">Fill in the medicine details below</div>
+    <div class="fr">
+      <div class="fg"><label>Medicine Name *</label><input type="text" id="f-name" placeholder="e.g. Paracetamol 500mg"/></div>
+      <div class="fg"><label>Generic Name</label><input type="text" id="f-gen" placeholder="e.g. Paracetamol"/></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Category *</label><select id="f-cat"><option value="">— Select Category —</option></select></div>
+      <div class="fg"><label>Supplier</label><select id="f-sup"><option value="">— Select Supplier —</option></select></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Unit *</label>
+        <select id="f-unit"><option value="tablet">Tablet</option><option value="capsule">Capsule</option><option value="bottle">Bottle</option><option value="box">Box</option><option value="sachet">Sachet</option><option value="vial">Vial</option><option value="pcs">Pcs</option></select>
+      </div>
+      <div class="fg"><label>Unit Price (RM)</label><input type="number" id="f-price" min="0" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Current Stock *</label><input type="number" id="f-stock" min="0" placeholder="0"/></div>
+      <div class="fg"><label>Reorder Level *</label><input type="number" id="f-reorder" min="0" placeholder="10"/></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Expiry Date</label><input type="date" id="f-expiry"/></div>
+      <div class="fg"><label>Shelf / Location</label><input type="text" id="f-loc" placeholder="e.g. Shelf A1"/></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="f-notes" placeholder="Optional description…"></textarea></div>
+    <div class="m-foot">
+      <button class="btn bg" onclick="closeM('md-med')">Cancel</button>
+      <button class="btn bp" id="mm-btn" onclick="saveMed()">Save Medicine</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Transaction -->
+<div class="overlay" id="md-tx">
+  <div class="modal">
+    <div class="m-title">Record Stock Transaction</div>
+    <div class="m-sub">Update stock quantity for a medicine</div>
+    <div class="fg"><label>Medicine *</label><select id="tx-med" style="width:100%;padding:10px 14px;border-radius:var(--radius-sm);"><option value="">— Select Medicine —</option></select></div>
+    <div class="fr">
+      <div class="fg"><label>Type *</label>
+        <select id="tx-type"><option value="in">📥 Stock In (Received)</option><option value="out">📤 Stock Out (Dispensed)</option><option value="adjustment">🔧 Manual Adjustment</option></select>
+      </div>
+      <div class="fg"><label>Quantity *</label><input type="number" id="tx-qty" min="1" placeholder="e.g. 50"/></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="tx-notes" placeholder="e.g. Received from supplier / Dispensed to patient…"></textarea></div>
+    <div class="m-foot">
+      <button class="btn bg" onclick="closeM('md-tx')">Cancel</button>
+      <button class="btn bp" onclick="saveTx()">Save Transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Category -->
+<div class="overlay" id="md-cat">
+  <div class="modal">
+    <div class="m-title" id="cm-title">Add Category</div>
+    <div class="m-sub">Create a new medicine category</div>
+    <div class="fg"><label>Category Name *</label><input type="text" id="f-cname" placeholder="e.g. Antibiotics"/></div>
+    <div class="fg"><label>Description</label><textarea id="f-cdesc" placeholder="Brief description…"></textarea></div>
+    <div class="m-foot">
+      <button class="btn bg" onclick="closeM('md-cat')">Cancel</button>
+      <button class="btn bp" id="cm-btn" onclick="saveCat()">Save Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Supplier -->
+<div class="overlay" id="md-sup">
+  <div class="modal">
+    <div class="m-title" id="sm-title">Add Supplier</div>
+    <div class="m-sub">Add a medicine supplier</div>
+    <div class="fr">
+      <div class="fg"><label>Company Name *</label><input type="text" id="f-sname" placeholder="e.g. MedSupply Sdn Bhd"/></div>
+      <div class="fg"><label>Contact Person</label><input type="text" id="f-scontact" placeholder="e.g. Ahmad Razif"/></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Phone</label><input type="text" id="f-sphone" placeholder="e.g. 03-12345678"/></div>
+      <div class="fg"><label>Email</label><input type="text" id="f-semail" placeholder="e.g. order@medsupply.com"/></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn bg" onclick="closeM('md-sup')">Cancel</button>
+      <button class="btn bp" id="sm-btn" onclick="saveSup()">Save Supplier</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+let cats = [
+  {id:1,name:'Antibiotics',desc:'Treat bacterial infections'},
+  {id:2,name:'Analgesics',desc:'Pain relief medications'},
+  {id:3,name:'Vitamins & Supplements',desc:'Nutritional supplements'},
+  {id:4,name:'Antihistamines',desc:'Allergy relief medications'},
+  {id:5,name:'Antacids',desc:'Digestive and stomach relief'},
+];
+let sups = [
+  {id:1,name:'MedSupply Sdn Bhd',contact:'Ahmad Razif',phone:'03-12345678',email:'order@medsupply.com.my'},
+  {id:2,name:'PharmaCare Malaysia',contact:'Lim Wei Xin',phone:'03-87654321',email:'sales@pharmacare.com.my'},
+];
+let meds = [
+  {id:1,name:'Amoxicillin 500mg',gen:'Amoxicillin',catId:1,supId:1,unit:'capsule',stock:200,reorder:50,price:0.80,expiry:'2026-06-30',loc:'Shelf A1',notes:''},
+  {id:2,name:'Paracetamol 500mg',gen:'Paracetamol',catId:2,supId:1,unit:'tablet',stock:500,reorder:100,price:0.10,expiry:'2027-01-15',loc:'Shelf A2',notes:''},
+  {id:3,name:'Vitamin C 1000mg',gen:'Ascorbic Acid',catId:3,supId:2,unit:'tablet',stock:8,reorder:20,price:0.50,expiry:'2025-12-31',loc:'Shelf B1',notes:''},
+  {id:4,name:'Cetirizine 10mg',gen:'Cetirizine',catId:4,supId:2,unit:'tablet',stock:150,reorder:30,price:0.30,expiry:'2026-09-01',loc:'Shelf B2',notes:''},
+  {id:5,name:'Omeprazole 20mg',gen:'Omeprazole',catId:5,supId:1,unit:'capsule',stock:3,reorder:25,price:1.20,expiry:'2026-03-20',loc:'Shelf C1',notes:''},
+  {id:6,name:'Metformin 500mg',gen:'Metformin',catId:2,supId:1,unit:'tablet',stock:320,reorder:60,price:0.25,expiry:'2027-04-10',loc:'Shelf C2',notes:'Diabetes management'},
+  {id:7,name:'Loratadine 10mg',gen:'Loratadine',catId:4,supId:2,unit:'tablet',stock:12,reorder:30,price:0.40,expiry:'2026-07-15',loc:'Shelf B3',notes:''},
+];
+let txs = [
+  {id:1,mId:1,type:'in',qty:100,notes:'Received from MedSupply',date:'2026-01-15T09:00:00'},
+  {id:2,mId:2,type:'out',qty:50,notes:'Dispensed to patients',date:'2026-01-20T14:30:00'},
+  {id:3,mId:3,type:'in',qty:50,notes:'Monthly restocking',date:'2026-02-01T10:00:00'},
+  {id:4,mId:5,type:'out',qty:10,notes:'Dispensed to patient',date:'2026-02-05T11:15:00'},
+  {id:5,mId:4,type:'adjustment',qty:150,notes:'Stock count correction',date:'2026-02-08T16:00:00'},
+  {id:6,mId:7,type:'in',qty:30,notes:'Received from PharmaCare',date:'2026-02-10T09:30:00'},
+];
+let nMed=8,nCat=6,nSup=3,nTx=7;
+let editMedId=null,editCatId=null,editSupId=null;
+const TODAY=new Date('2026-02-11');
+
+// ── HELPERS ───────────────────────────────────────────────
+const expSt=d=>{if(!d)return'none';const x=new Date(d);if(x<TODAY)return'expired';return(x-TODAY)/(864e5)<=90?'expiring':'ok';}
+const fdate=d=>d?new Date(d).toLocaleDateString('en-MY',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const fdt=d=>d?new Date(d).toLocaleString('en-MY',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+const catName=id=>{const c=cats.find(c=>c.id===id);return c?c.name:'—';}
+const supName=id=>{const s=sups.find(s=>s.id===id);return s?s.name:'—';}
+
+function fillSel(id,items,vk,lk,ph='— Select —'){
+  const el=document.getElementById(id);const cur=el.value;
+  el.innerHTML=`<option value="">${ph}</option>`+items.map(i=>`<option value="${i[vk]}">${i[lk]}</option>`).join('');
+  el.value=cur;
+}
+function syncDrops(){
+  fillSel('f-cat',cats,'id','name','— Select Category —');
+  fillSel('f-sup',sups,'id','name','— Select Supplier —');
+  fillSel('m-fcat',cats,'id','name','All Categories');
+  fillSel('tx-med',meds,'id','name','— Select Medicine —');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────
+const pgMeta={
+  dashboard:{t:'Dashboard',s:'Real-time overview of your inventory'},
+  medicines:{t:'Medicine Inventory',s:'Manage all medicines and stock levels'},
+  categories:{t:'Categories',s:'Organise medicines by category'},
+  suppliers:{t:'Suppliers',s:'Manage your medicine suppliers'},
+  transactions:{t:'Stock Transactions',s:'History of all stock movements'},
+  alerts:{t:'Alerts & Expiry',s:'Items needing immediate attention'},
+};
+function nav(pg,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+pg).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('pg-title').textContent=pgMeta[pg].t;
+  document.getElementById('pg-sub').textContent=pgMeta[pg].s;
+  if(pg==='medicines')renderMeds();
+  if(pg==='categories')renderCats();
+  if(pg==='suppliers')renderSups();
+  if(pg==='transactions')renderTx();
+  if(pg==='alerts')renderAlerts();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function refreshDash(){
+  const lowL=meds.filter(m=>m.stock<=m.reorder);
+  const expL=meds.filter(m=>['expired','expiring'].includes(expSt(m.expiry)));
+  const val=meds.reduce((a,m)=>a+m.stock*m.price,0);
+  const alertCt=lowL.length+expL.length;
+  document.getElementById('d-tot').textContent=meds.length;
+  document.getElementById('d-low').textContent=lowL.length;
+  document.getElementById('d-exp').textContent=expL.length;
+  document.getElementById('d-val').textContent='RM '+val.toFixed(2);
+  // badges
+  const sb=document.getElementById('sb-badge'),ta=document.getElementById('tb-alert');
+  if(alertCt>0){sb.textContent=alertCt;sb.style.display='';ta.style.display='';document.getElementById('tb-alert-txt').textContent=alertCt+' Alert'+(alertCt>1?'s':'');}
+  else{sb.style.display='none';ta.style.display='none';}
+  // low stock list
+  const lEl=document.getElementById('d-low-list');
+  lEl.innerHTML=lowL.length?lowL.map(m=>`<div class="a-row"><div><div class="a-name">${m.name}</div><div class="a-meta">${m.unit} · Reorder at ${m.reorder}</div></div><span class="chip am">Stock: ${m.stock}</span></div>`).join('')
+    :'<div class="empty-s"><div class="ei">✅</div>All stock levels OK</div>';
+  // expiry list
+  const eEl=document.getElementById('d-exp-list');
+  const eList=meds.filter(m=>expSt(m.expiry)!=='none'&&expSt(m.expiry)!=='ok');
+  eEl.innerHTML=eList.length?eList.map(m=>{const st=expSt(m.expiry);return`<div class="a-row"><div><div class="a-name">${m.name}</div><div class="a-meta">Expires: ${fdate(m.expiry)}</div></div><span class="chip ${st==='expired'?'re':'am'}">${st==='expired'?'EXPIRED':'Expiring'}</span></div>`}).join('')
+    :'<div class="empty-s"><div class="ei">✅</div>No expiry issues</div>';
+  // recent tx
+  const tbody=document.getElementById('d-tx');
+  const recent=[...txs].reverse().slice(0,6);
+  const ico={in:'📥',out:'📤',adjustment:'🔧'};
+  tbody.innerHTML=recent.length?recent.map(t=>{const m=meds.find(x=>x.id===t.mId);return`<tr>
+    <td><span class="m-name">${m?m.name:'Unknown'}</span></td>
+    <td><span class="tx-t ${t.type==='adjustment'?'adj':t.type}">${ico[t.type]} ${t.type.toUpperCase()}</span></td>
+    <td><b style="font-family:'Syne',sans-serif">${t.qty}</b> ${m?m.unit:''}</td>
+    <td style="color:var(--text2)">${t.notes||'—'}</td>
+    <td style="color:var(--text2)">${fdt(t.date)}</td>
+  </tr>`}).join(''):'<tr><td colspan="5" class="empty-s">No transactions yet</td></tr>';
+}
+
+// ── MEDICINES TABLE ────────────────────────────────────────
+function renderMeds(){
+  const q=document.getElementById('m-srch').value.toLowerCase();
+  const cat=document.getElementById('m-fcat').value;
+  const st=document.getElementById('m-fst').value;
+  let list=meds.filter(m=>{
+    const mq=!q||m.name.toLowerCase().includes(q)||(m.gen||'').toLowerCase().includes(q);
+    const mc=!cat||m.catId==cat;
+    const es=expSt(m.expiry);
+    const ms=!st||(st==='low'&&m.stock<=m.reorder)||(st==='expiring'&&es==='expiring')||(st==='expired'&&es==='expired');
+    return mq&&mc&&ms;
+  });
+  document.getElementById('med-lbl').textContent=list.length+' item'+(list.length!==1?'s':'');
+  const tb=document.getElementById('m-tbody');
+  if(!list.length){tb.innerHTML='<tr><td colspan="8" class="empty-s"><div class="ei">💊</div>No medicines found</td></tr>';return;}
+  tb.innerHTML=list.map(m=>{
+    const pct=Math.min(100,Math.round((m.stock/Math.max(m.reorder*3,1))*100));
+    const clr=m.stock<=m.reorder?'var(--red)':m.stock<m.reorder*2?'var(--amber)':'var(--teal)';
+    const es=expSt(m.expiry);
+    const ec=es==='expired'?'re':es==='expiring'?'am':'tc';
+    const el=es==='expired'?'EXPIRED':es==='expiring'?fdate(m.expiry):m.expiry?fdate(m.expiry):'—';
+    return`<tr>
+      <td><div class="m-name">${m.name}</div><div class="m-gen">${m.gen||''}</div></td>
+      <td><span class="chip bl">${catName(m.catId)}</span></td>
+      <td style="color:var(--text2);font-size:12.5px">${supName(m.supId)}</td>
+      <td>
+        <div class="stk-wrap"><span class="stk-num" style="color:${clr}">${m.stock}</span>
+        <div class="stk-bar"><div class="stk-fill" style="width:${pct}%;background:${clr}"></div></div>
+        <span style="font-size:11.5px;color:var(--text2)">${m.unit}</span></div>
+        ${m.stock<=m.reorder?'<span class="chip am" style="margin-top:4px;font-size:10px">Reorder</span>':''}
+      </td>
+      <td><span class="chip ${ec}">${el}</span></td>
+      <td style="color:var(--text2);font-size:12.5px">${m.loc||'—'}</td>
+      <td style="font-family:'Syne',sans-serif;font-weight:600">${m.price>0?'RM '+m.price.toFixed(2):'—'}</td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn bg bsm" onclick="openEditMed(${m.id})">Edit</button>
+        <button class="btn bd bsm" onclick="delMed(${m.id})">Del</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CATEGORIES TABLE ───────────────────────────────────────
+function renderCats(){
+  const tb=document.getElementById('c-tbody');
+  tb.innerHTML=cats.map(c=>{
+    const cnt=meds.filter(m=>m.catId===c.id).length;
+    return`<tr>
+      <td><span class="m-name">${c.name}</span></td>
+      <td style="color:var(--text2)">${c.desc||'—'}</td>
+      <td><span class="chip tc">${cnt} item${cnt!==1?'s':''}</span></td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn bg bsm" onclick="openEditCat(${c.id})">Edit</button>
+        <button class="btn bd bsm" onclick="delCat(${c.id})">Del</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SUPPLIERS TABLE ────────────────────────────────────────
+function renderSups(){
+  document.getElementById('s-tbody').innerHTML=sups.map(s=>`<tr>
+    <td><span class="m-name">${s.name}</span></td>
+    <td style="color:var(--text2)">${s.contact||'—'}</td>
+    <td style="color:var(--text2)">${s.phone||'—'}</td>
+    <td style="color:var(--text2)">${s.email||'—'}</td>
+    <td><div style="display:flex;gap:6px">
+      <button class="btn bg bsm" onclick="openEditSup(${s.id})">Edit</button>
+      <button class="btn bd bsm" onclick="delSup(${s.id})">Del</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ── TRANSACTIONS TABLE ─────────────────────────────────────
+function renderTx(){
+  const ft=document.getElementById('tx-ftype').value;
+  let list=ft?txs.filter(t=>t.type===ft):txs;
+  list=[...list].reverse();
+  const ico={in:'📥',out:'📤',adjustment:'🔧'};
+  const tb=document.getElementById('tx-tbody');
+  tb.innerHTML=list.length?list.map(t=>{const m=meds.find(x=>x.id===t.mId);return`<tr>
+    <td><span class="m-name">${m?m.name:'Unknown'}</span></td>
+    <td><span class="tx-t ${t.type==='adjustment'?'adj':t.type}">${ico[t.type]} ${t.type.charAt(0).toUpperCase()+t.type.slice(1)}</span></td>
+    <td><b style="font-family:'Syne',sans-serif;font-size:15px">${t.qty}</b> <span style="color:var(--text2)">${m?m.unit:''}</span></td>
+    <td style="color:var(--text2)">${t.notes||'—'}</td>
+    <td style="color:var(--text2)">${fdt(t.date)}</td>
+  </tr>`}).join(''):'<tr><td colspan="5" class="empty-s">No transactions found</td></tr>';
+}
+
+// ── ALERTS PAGE ────────────────────────────────────────────
+function renderAlerts(){
+  const fill=(id,items,fn,empty)=>{
+    document.getElementById(id).innerHTML=items.length?items.map(fn).join(''):`<div class="empty-s"><div class="ei">✅</div>${empty}</div>`;
+  };
+  fill('a-low',meds.filter(m=>m.stock<=m.reorder),m=>`<div class="a-row">
+    <div><div class="a-name">${m.name}</div><div class="a-meta">Stock: ${m.stock} ${m.unit} · Reorder at: ${m.reorder}</div></div>
+    <button class="btn bam bsm" onclick="openTxFor(${m.id})">Restock</button>
+  </div>`,'All stock levels OK');
+  fill('a-exp',meds.filter(m=>expSt(m.expiry)==='expiring'),m=>`<div class="a-row">
+    <div><div class="a-name">${m.name}</div><div class="a-meta">Expires: ${fdate(m.expiry)}</div></div>
+    <span class="chip am">Expiring Soon</span>
+  </div>`,'No items expiring soon');
+  fill('a-exd',meds.filter(m=>expSt(m.expiry)==='expired'),m=>`<div class="a-row">
+    <div><div class="a-name">${m.name}</div><div class="a-meta">Expired: ${fdate(m.expiry)}</div></div>
+    <span class="chip re">EXPIRED</span>
+  </div>`,'No expired medicines');
+}
+
+// ── MEDICINE MODAL ─────────────────────────────────────────
+function openMedModal(){
+  editMedId=null;
+  document.getElementById('mm-title').textContent='Add Medicine';
+  document.getElementById('mm-btn').textContent='Save Medicine';
+  ['f-name','f-gen','f-price','f-stock','f-reorder','f-expiry','f-loc','f-notes'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('f-unit').value='tablet';
+  syncDrops();
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-sup').value='';
+  document.getElementById('md-med').classList.add('show');
+}
+function openEditMed(id){
+  const m=meds.find(x=>x.id===id);if(!m)return;
+  editMedId=id;syncDrops();
+  document.getElementById('mm-title').textContent='Edit Medicine';
+  document.getElementById('mm-btn').textContent='Update Medicine';
+  document.getElementById('f-name').value=m.name;
+  document.getElementById('f-gen').value=m.gen||'';
+  document.getElementById('f-cat').value=m.catId||'';
+  document.getElementById('f-sup').value=m.supId||'';
+  document.getElementById('f-unit').value=m.unit;
+  document.getElementById('f-price').value=m.price;
+  document.getElementById('f-stock').value=m.stock;
+  document.getElementById('f-reorder').value=m.reorder;
+  document.getElementById('f-expiry').value=m.expiry||'';
+  document.getElementById('f-loc').value=m.loc||'';
+  document.getElementById('f-notes').value=m.notes||'';
+  document.getElementById('md-med').classList.add('show');
+}
+function saveMed(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){toast('Medicine name is required','error');return;}
+  const d={name,gen:document.getElementById('f-gen').value.trim(),catId:parseInt(document.getElementById('f-cat').value)||null,
+    supId:parseInt(document.getElementById('f-sup').value)||null,unit:document.getElementById('f-unit').value,
+    price:parseFloat(document.getElementById('f-price').value)||0,
+    stock:parseInt(document.getElementById('f-stock').value)||0,
+    reorder:parseInt(document.getElementById('f-reorder').value)||0,
+    expiry:document.getElementById('f-expiry').value||null,
+    loc:document.getElementById('f-loc').value.trim(),notes:document.getElementById('f-notes').value.trim()};
+  if(editMedId){const i=meds.findIndex(x=>x.id===editMedId);meds[i]={...meds[i],...d};toast('Medicine updated!','success');}
+  else{meds.push({id:nMed++,...d});toast('Medicine added!','success');}
+  closeM('md-med');renderMeds();refreshDash();syncDrops();
+}
+function delMed(id){if(!confirm('Delete this medicine?'))return;meds=meds.filter(m=>m.id!==id);renderMeds();refreshDash();toast('Deleted','info');}
+
+// ── CATEGORY MODAL ─────────────────────────────────────────
+function openCatModal(){editCatId=null;document.getElementById('cm-title').textContent='Add Category';document.getElementById('cm-btn').textContent='Save Category';document.getElementById('f-cname').value='';document.getElementById('f-cdesc').value='';document.getElementById('md-cat').classList.add('show');}
+function openEditCat(id){const c=cats.find(x=>x.id===id);if(!c)return;editCatId=id;document.getElementById('cm-title').textContent='Edit Category';document.getElementById('cm-btn').textContent='Update Category';document.getElementById('f-cname').value=c.name;document.getElementById('f-cdesc').value=c.desc||'';document.getElementById('md-cat').classList.add('show');}
+function saveCat(){const n=document.getElementById('f-cname').value.trim();if(!n){toast('Name required','error');return;}const d={name:n,desc:document.getElementById('f-cdesc').value.trim()};if(editCatId){const i=cats.findIndex(x=>x.id===editCatId);cats[i]={...cats[i],...d};toast('Category updated!','success');}else{cats.push({id:nCat++,...d});toast('Category added!','success');}closeM('md-cat');renderCats();syncDrops();}
+function delCat(id){if(!confirm('Delete this category?'))return;cats=cats.filter(c=>c.id!==id);renderCats();syncDrops();toast('Deleted','info');}
+
+// ── SUPPLIER MODAL ─────────────────────────────────────────
+function openSupModal(){editSupId=null;document.getElementById('sm-title').textContent='Add Supplier';document.getElementById('sm-btn').textContent='Save Supplier';['f-sname','f-scontact','f-sphone','f-semail'].forEach(i=>document.getElementById(i).value='');document.getElementById('md-sup').classList.add('show');}
+function openEditSup(id){const s=sups.find(x=>x.id===id);if(!s)return;editSupId=id;document.getElementById('sm-title').textContent='Edit Supplier';document.getElementById('sm-btn').textContent='Update Supplier';document.getElementById('f-sname').value=s.name;document.getElementById('f-scontact').value=s.contact||'';document.getElementById('f-sphone').value=s.phone||'';document.getElementById('f-semail').value=s.email||'';document.getElementById('md-sup').classList.add('show');}
+function saveSup(){const n=document.getElementById('f-sname').value.trim();if(!n){toast('Name required','error');return;}const d={name:n,contact:document.getElementById('f-scontact').value.trim(),phone:document.getElementById('f-sphone').value.trim(),email:document.getElementById('f-semail').value.trim()};if(editSupId){const i=sups.findIndex(x=>x.id===editSupId);sups[i]={...sups[i],...d};toast('Supplier updated!','success');}else{sups.push({id:nSup++,...d});toast('Supplier added!','success');}closeM('md-sup');renderSups();syncDrops();}
+function delSup(id){if(!confirm('Delete this supplier?'))return;sups=sups.filter(s=>s.id!==id);renderSups();syncDrops();toast('Deleted','info');}
+
+// ── TRANSACTION MODAL ──────────────────────────────────────
+function openTxModal(){syncDrops();document.getElementById('tx-qty').value='';document.getElementById('tx-notes').value='';document.getElementById('tx-type').value='in';document.getElementById('md-tx').classList.add('show');}
+function openTxFor(mId){openTxModal();setTimeout(()=>document.getElementById('tx-med').value=mId,50);}
+function saveTx(){
+  const mId=parseInt(document.getElementById('tx-med').value);
+  const type=document.getElementById('tx-type').value;
+  const qty=parseInt(document.getElementById('tx-qty').value);
+  const notes=document.getElementById('tx-notes').value.trim();
+  if(!mId){toast('Select a medicine','error');return;}
+  if(!qty||qty<1){toast('Enter a valid quantity','error');return;}
+  const m=meds.find(x=>x.id===mId);
+  if(type==='out'&&m.stock<qty){toast(`Insufficient stock. Available: ${m.stock}`,'error');return;}
+  const i=meds.findIndex(x=>x.id===mId);
+  if(type==='in')meds[i].stock+=qty;else if(type==='out')meds[i].stock-=qty;else meds[i].stock=qty;
+  txs.push({id:nTx++,mId,type,qty,notes,date:new Date().toISOString()});
+  closeM('md-tx');refreshDash();renderTx();
+  toast('Transaction recorded!','success');
+  if(meds[i].stock<=meds[i].reorder)toast('⚠️ Stock now at reorder level!','error');
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function closeM(id){document.getElementById(id).classList.remove('show');}
+function toast(msg,type='success'){
+  const el=document.getElementById('toast');
+  const ic={success:'✅',error:'❌',info:'ℹ️'};
+  el.innerHTML=`${ic[type]||''} ${msg}`;el.className='show '+type;
+  clearTimeout(el._t);el._t=setTimeout(()=>el.className='',3200);
+}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+
+// ── AUTH ────────────────────────────────────────────────────
+let users=[{id:1,name:'Administrator',username:'admin',password:'admin123',role:'admin'}];
+let nUser=2;
+let currentUser=null;
+
+function switchTab(t){
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+  document.querySelectorAll('.auth-form').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('login-err').classList.remove('show');
+  document.getElementById('reg-err').classList.remove('show');
+}
+
+function showAuthErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.classList.add('show');}
+
+function doLogin(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value;
+  if(!u||!p){showAuthErr('login-err','Please enter username and password.');return;}
+  const found=users.find(x=>x.username===u&&x.password===p);
+  if(!found){showAuthErr('login-err','Incorrect username or password.');return;}
+  currentUser=found;
+  applyUser();
+  document.getElementById('auth-screen').style.display='none';
+  toast('Welcome back, '+found.name+'!','success');
+}
+
+function doRegister(){
+  const name=document.getElementById('r-name').value.trim();
+  const uname=document.getElementById('r-user').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const pass2=document.getElementById('r-pass2').value;
+  const role=document.getElementById('r-role').value;
+  if(!name||!uname||!pass||!pass2){showAuthErr('reg-err','All fields are required.');return;}
+  if(pass.length<6){showAuthErr('reg-err','Password must be at least 6 characters.');return;}
+  if(pass!==pass2){showAuthErr('reg-err','Passwords do not match.');return;}
+  if(users.find(x=>x.username===uname)){showAuthErr('reg-err','Username already taken. Choose another.');return;}
+  const newUser={id:nUser++,name,username:uname,password:pass,role};
+  users.push(newUser);
+  currentUser=newUser;
+  applyUser();
+  document.getElementById('auth-screen').style.display='none';
+  toast('Account created! Welcome, '+name+'!','success');
+}
+
+function applyUser(){
+  if(!currentUser)return;
+  const initials=currentUser.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  // sidebar
+  document.getElementById('sb-uname').textContent=currentUser.name;
+  document.getElementById('sb-avatar').textContent=initials;
+  const rc=document.getElementById('sb-role-chip');
+  rc.textContent=currentUser.role.charAt(0).toUpperCase()+currentUser.role.slice(1);
+  rc.className='role-chip '+currentUser.role;
+  // topbar
+  document.getElementById('tb-uname').textContent=currentUser.name;
+  const trc=document.getElementById('tb-role-chip');
+  trc.textContent=currentUser.role.charAt(0).toUpperCase()+currentUser.role.slice(1);
+  trc.className='role-chip '+currentUser.role;
+}
+
+function doLogout(){
+  if(!confirm('Are you sure you want to logout?'))return;
+  currentUser=null;
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
+  document.getElementById('login-err').classList.remove('show');
+  document.getElementById('auth-screen').style.display='flex';
+  switchTab('login');
+  toast('Logged out successfully','info');
+}
+
+// allow Enter key on login
+['l-user','l-pass'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+});
+
+// ── INIT ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('tb-date').textContent=TODAY.toLocaleDateString('en-MY',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+  syncDrops();
+  refreshDash();
+});
+</script>
+</body>
+</html>
