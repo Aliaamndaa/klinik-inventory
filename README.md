@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🏥 Klinik Dr. Azhar — Inventory Management System
 
 A production-ready **web-based medical inventory management system** built with PHP, MySQL, and vanilla HTML/CSS/JS. Developed as a final year project (FYP) to replace manual stock-tracking processes at a clinic with a fully digital solution.
