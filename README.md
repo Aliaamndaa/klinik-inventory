@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🏥 Klinik Dr. Azhar — Inventory Management System
 
 A production-ready **web-based medical inventory management system** built with PHP, MySQL, and vanilla HTML/CSS/JS. Developed as a final year project (FYP) to replace manual stock-tracking processes at a clinic with a fully digital solution.
@@ -155,3 +156,6 @@ users              — Admin login (role-based: admin / staff)
 **Nuralia Amanda Binti Mohamad Akhsan**  
 Computer Science (Software Development) — UTeM  
 [GitHub](https://github.com/Aliaamndaa) · [LinkedIn](https://linkedin.com/in/nuralia-amanda)
+=======
+# klinik-inventory
+>>>>>>> b8100e058d9061305303b54e7c01df69c7279a4c
